@@ -73,7 +73,14 @@ order by work_date;
 
 
 create view employees.employee_report_view as
-select extract('YEAR' from t.work_date) as year, extract('WEEK' from t.work_date) as week_number, employee_id, json_agg(t) report
+select extract('YEAR' from t.work_date) as year,
+       extract('WEEK' from t.work_date) as week_number,
+       employee_id,
+       json_agg(json_build_object('status', coalesce(t.status, 'ok'),
+                                  'workDate', t.work_date,
+                                  'factWorkingHours', t.fact_working_hours,
+                                  'isCorrectTime', t.is_correct_time)
+           )                            as report
 from employees.employee_statistics_view t
 group by extract('WEEK' from t.work_date), extract('YEAR' from t.work_date), employee_id;
 
